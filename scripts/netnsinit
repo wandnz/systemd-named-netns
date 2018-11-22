@@ -16,11 +16,17 @@ autoconfigure_veth() {
 		! mkdir -p /var/run/netns
 		dhclient -v -i ${DEVNAME_INSIDE} -nw -pf /var/run/netns/dhclient-${NSNAME}.pid
 	else
-		if [ ! -z "${IPADDR}" ]; then
-			/bin/ip address add ${IPADDR} dev ${DEVNAME_INSIDE}
+		if [ ! -z "${IPADDR_V4}" ]; then
+			/bin/ip address add ${IPADDR_V4} dev ${DEVNAME_INSIDE}
 		fi
-		if [ ! -z "${GATEWAY}" ]; then
-			/bin/ip route add default via ${GATEWAY%%/*}
+		if [ ! -z "${GATEWAY_V4}" ]; then
+			/bin/ip route add default via ${GATEWAY_V4}
+		fi
+		if [ ! -z "${IPADDR_V6}" ]; then
+			/bin/ip -6 address add ${IPADDR_V6} dev ${DEVNAME_INSIDE}
+		fi
+		if [ ! -z "${GATEWAY_V6}" ]; then
+			/bin/ip -6 route add default via ${GATEWAY_V6}
 		fi
 	fi
 	return 0 # additional precation against "set -e" in case of future mods of this function

@@ -13,8 +13,8 @@ WantedBy=multi-user.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-Environment=DEVNAME_OUTSIDE=vn-%I0
-Environment=DEVNAME_INSIDE=vn-%I1
+Environment=DEVNAME_OUTSIDE=veth-%I
+Environment=DEVNAME_INSIDE=veth0
 EnvironmentFile=/etc/default/netns
 EnvironmentFile=-/etc/default/netns-%I
 

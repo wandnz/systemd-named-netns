@@ -37,7 +37,7 @@ autoconfigure() {
 	local NSNAME=$2
 
 	echo "Starting autoconfigure for $NSTYPE ${NSNAME}"
-	DEVNAME_INSIDE=vn-${NSNAME}1
+	DEVNAME_INSIDE=veth0
 	source /etc/default/netns
 	! source "/etc/default/netns-${NSNAME}"
 

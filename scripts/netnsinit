@@ -8,7 +8,7 @@ display_usage() {
 	echo "Note: you may need root privileges for this."
 }
 
-autoconfigure_tunnel() {
+autoconfigure_veth() {
 	if [ ! -z "$MACADDR" ]; then
 		/bin/ip link set ${DEVNAME_INSIDE} address ${MACADDR}
 	fi
@@ -22,14 +22,6 @@ autoconfigure_tunnel() {
 		if [ ! -z "${GATEWAY}" ]; then
 			/bin/ip route add default via ${GATEWAY%%/*}
 		fi
-	fi
-	return 0 # additional precation against "set -e" in case of future mods of this function
-}
-
-autoconfigure_nat() {
-	# add default route if gateway undefined
-	if [ -z "${GATEWAY}" -a -n "${IPADDR_OUTSIDE}" ]; then
-		/bin/ip route add default via ${IPADDR_OUTSIDE%%/*}
 	fi
 	return 0 # additional precation against "set -e" in case of future mods of this function
 }
@@ -60,7 +52,7 @@ case "$1" in
 		display_usage
 		exit 0
 		;;
-	"tunnel"|"bridge"|"nat")
+	"veth"|"bridge")
 		autoconfigure "$@"
 		exit 0
 		;;

@@ -6,6 +6,9 @@
 # Bridge name for netns-bridge@.service
 #BRIDGE=br0
 
+# Raw interface name for netns-raw@.service
+#DEVNAME=eno1
+
 # IP address of the interface outside
 #IPADDR_OUTSIDE=192.168.1.1/24
 

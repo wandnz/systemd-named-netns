@@ -20,4 +20,4 @@ EnvironmentFile=-/etc/default/netns-%I
 
 ExecStart=/usr/bin/env ip link set ${DEVNAME_OUTSIDE} master ${BRIDGE}
 
-ExecStart=/usr/bin/env ip netns exec %I /usr/bin/env netnsinit bridge %I
+ExecStart=/usr/bin/env ip netns exec %I /usr/bin/env netnsinit bridge %I ${DEVNAME_INSIDE}

@@ -1,0 +1,28 @@
+[Unit]
+Description=Raw ethernet service for netns %I
+Documentation=https://github.com/Jamesits/systemd-named-netns
+
+BindsTo=netns@%i.service
+After=netns@%i.service
+Before=network.target network-online.target
+
+[Install]
+WantedBy=network-online.target
+WantedBy=multi-user.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/default/netns
+EnvironmentFile=-/etc/default/netns-%I
+
+ExecStart=-/usr/bin/env tc qdisc del dev ${DEVNAME} root
+ExecStart=/usr/bin/env ip link set ${DEVNAME} netns %I
+# let this fail silently if IPADDR_OUTSIDE is undefined
+ExecStart=/usr/bin/env ip netns exec %I /usr/bin/env ip link set ${DEVNAME} up
+
+# do not run in ExecStartPost to prevent forked dhclient from being killed
+ExecStart=/usr/bin/env ip netns exec %I /usr/bin/env netnsinit interface %I ${DEVNAME}
+
+ExecStop=-/usr/bin/env kill -15 `cat /var/run/netns/dhclient-%i.pid`
+ExecStop=-/usr/bin/env rm /var/run/netns/dhclient-%i.pid

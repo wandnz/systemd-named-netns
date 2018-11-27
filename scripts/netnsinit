@@ -8,7 +8,7 @@ display_usage() {
 	echo "Note: you may need root privileges for this."
 }
 
-autoconfigure_veth() {
+autoconfigure_interface() {
 	if [ ! -z "$MACADDR" ]; then
 		/bin/ip link set ${DEVNAME_INSIDE} address ${MACADDR}
 	fi
@@ -37,7 +37,7 @@ autoconfigure() {
 	local NSNAME=$2
 
 	echo "Starting autoconfigure for $NSTYPE ${NSNAME}"
-	DEVNAME_INSIDE=veth0
+	DEVNAME_INSIDE=$3
 	source /etc/default/netns
 	! source "/etc/default/netns-${NSNAME}"
 
@@ -58,7 +58,7 @@ case "$1" in
 		display_usage
 		exit 0
 		;;
-	"veth"|"bridge")
+	"interface"|"bridge")
 		autoconfigure "$@"
 		exit 0
 		;;

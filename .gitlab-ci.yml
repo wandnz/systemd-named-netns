@@ -1,0 +1,25 @@
+stages:
+  - build
+  - upload
+
+build-package:
+  stage: build
+  image: debian:stretch
+  script:
+    - ./gitlab-build.sh
+    - mkdir -p built-packages/
+    - mv ../*.deb built-packages/
+  artifacts:
+    paths:
+      - built-packages/*
+    expire_in: 1 day
+  only:
+    - tags
+
+upload-package:
+  stage: upload
+  image: debian:stretch
+  script:
+    - ./bintray-upload.sh
+  only:
+    - tags

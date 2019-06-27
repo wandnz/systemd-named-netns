@@ -3,11 +3,11 @@
 This project enables you to:
  * Create and delete named netns on the fly like systemd services
  * Start named netns on boot
- * Quickly set up bridging or NAT from netns to host
+ * Quickly set up bridging from netns to host
  * Use named netns in systemd services
    * Enables them to connect to the internet too
    * And you can manually switch to its netns (since they are named)
-   
+
 ## Installation
 
 Dependencies:
@@ -16,7 +16,7 @@ Dependencies:
  * iptables (only if you use default NAT config)
  * `/usr/bin/env`
 
-For installation, run `make install` with root privilege. 
+For installation, run `make install` with root privilege.
 
 You ran run `make uninstall` to remove the systemd units, but the configs located in `/etc/default` will not be removed.
 

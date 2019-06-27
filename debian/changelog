@@ -1,0 +1,48 @@
+systemd-named-netns (0~20190627-1) unstable; urgency=medium
+
+  * New upstream version
+  * Rename tunnel to veth, drop support for NAT
+  * Add support for static IPv6
+  * Use consistent naming for veth interfaces
+  * Add support for netns-raw services
+
+ -- Brad Cowie <brad@wand.net.nz>  Wed, 27 Jun 2019 13:34:47 +1200
+
+systemd-named-netns (0~20180124-1) unstable; urgency=medium
+
+  * New upstream version
+  * Fixes systemd dependency ordering
+
+ -- Maximilian Stein <m@steiny.biz>  Wed, 24 Jan 2018 13:49:47 +0100
+
+systemd-named-netns (0~20180119-1) unstable; urgency=medium
+
+  * New upstream version with completely rewritten config system
+
+ -- Maximilian Stein <m@steiny.biz>  Fri, 19 Jan 2018 14:44:39 +0100
+
+systemd-named-netns (0~20180118-1) unstable; urgency=medium
+
+  * Upgrade to 0~20180118
+  * Pass correct library directory to install target
+
+ -- Maximilian Stein <m@steiny.biz>  Thu, 18 Jan 2018 17:34:09 +0100
+
+systemd-named-netns (0~20180117-3) unstable; urgency=medium
+
+  * Install README
+
+ -- Maximilian Stein <m@steiny.biz>  Wed, 17 Jan 2018 01:18:20 +0100
+
+systemd-named-netns (0~20180117-2) unstable; urgency=medium
+
+  * Fix missing build-depends
+  * Add manpages
+
+ -- Maximilian Stein <m@steiny.biz>  Wed, 17 Jan 2018 00:45:31 +0100
+
+systemd-named-netns (0~20180117-1) unstable; urgency=medium
+
+  * Initial Release.
+
+ -- Maximilian Stein <m@steiny.biz>  Tue, 16 Jan 2018 23:37:52 +0100

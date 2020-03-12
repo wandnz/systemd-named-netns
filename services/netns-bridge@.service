@@ -1,5 +1,5 @@
 [Unit]
-Description=Bridging service for netns %I
+Description=Bridging service for netns %i
 Documentation=https://github.com/Jamesits/systemd-named-netns
 
 BindsTo=netns-veth@%i.service
@@ -13,11 +13,11 @@ WantedBy=multi-user.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-Environment=DEVNAME_OUTSIDE=veth-%I
+Environment=DEVNAME_OUTSIDE=veth-%i
 Environment=DEVNAME_INSIDE=veth0
 EnvironmentFile=/etc/default/netns
-EnvironmentFile=-/etc/default/netns-%I
+EnvironmentFile=-/etc/default/netns-%i
 
 ExecStart=/usr/bin/env ip link set ${DEVNAME_OUTSIDE} master ${BRIDGE}
 
-ExecStart=/usr/bin/env ip netns exec %I /usr/bin/env netnsinit bridge %I ${DEVNAME_INSIDE}
+ExecStart=/usr/bin/env ip netns exec %i /usr/bin/env netnsinit bridge %i ${DEVNAME_INSIDE}

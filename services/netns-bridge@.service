@@ -15,9 +15,13 @@ Type=oneshot
 RemainAfterExit=yes
 Environment=DEVNAME_OUTSIDE=veth-%i
 Environment=DEVNAME_INSIDE=veth0
-EnvironmentFile=/etc/default/netns
-EnvironmentFile=-/etc/default/netns-%i
 
-ExecStart=/usr/bin/env ip link set ${DEVNAME_OUTSIDE} master ${BRIDGE}
-
-ExecStart=/usr/bin/env ip netns exec %i /usr/bin/env netnsinit bridge %i ${DEVNAME_INSIDE}
+ExecStart=/bin/sh -c \
+    "set -e; for config in /etc/default/netns-%i/veth.* /etc/default/netns-%i/bridge.*; do \
+        [ -e $${config} ] || continue; \
+        ( \
+        . $${config}; \
+        /usr/bin/env ip link set $${DEVNAME_OUTSIDE} master $${BRIDGE}; \
+        /usr/bin/env ip netns exec %i /usr/bin/env netnsinit bridge %i $${DEVNAME_INSIDE} $${config}; \
+        ); \
+    done"

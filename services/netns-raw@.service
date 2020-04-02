@@ -13,17 +13,26 @@ WantedBy=multi-user.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-EnvironmentFile=/etc/default/netns
-EnvironmentFile=-/etc/default/netns-%i
 
-ExecStart=-/usr/bin/env tc qdisc del dev ${DEVNAME} root
-ExecStart=/usr/bin/env ip link set ${DEVNAME} netns %i
-# let this fail silently if IPADDR_OUTSIDE is undefined
-ExecStart=/usr/bin/env ip netns exec %i /usr/bin/env ip link set ${DEVNAME} up
+ExecStart=/bin/sh -c \
+    "set -e; for config in /etc/default/netns-%i/raw.*; do \
+        [ -e $${config} ] || continue; \
+        ( \
+        . $${config}; \
+        /usr/bin/env tc qdisc del dev $${DEVNAME} root || true; \
+        /usr/bin/env ip link set $${DEVNAME} netns %i; \
+        /usr/bin/env ip netns exec %i /usr/bin/env ip link set $${DEVNAME} up; \
+        /usr/bin/env ip netns exec %i /usr/bin/env netnsinit interface %i $${DEVNAME} $${config}; \
+        ); \
+    done"
 
-# do not run in ExecStartPost to prevent forked dhclient from being killed
-ExecStart=/usr/bin/env ip netns exec %i /usr/bin/env netnsinit interface %i ${DEVNAME}
-
-ExecStop=-/usr/bin/env kill -15 `cat /var/run/dhclient-%i.pid`
-ExecStop=-/usr/bin/env rm /var/run/dhclient-%i.pid
-ExecStop=/usr/bin/env ip netns exec %i ip link set ${DEVNAME} netns 1;
+ExecStop=/bin/sh -c \
+    "set -e; for config in /etc/default/netns-%i/raw.*; do \
+        [ -e $${config} ] || continue; \
+        ( \
+        . $${config}; \
+        /usr/bin/env kill -15 `cat /var/run/dhclient-%i_$${DEVNAME}.pid` || true; \
+        /usr/bin/env rm /var/run/dhclient-%i_$${DEVNAME}.pid || true; \
+        /usr/bin/env ip netns exec %i ip link set $${DEVNAME} netns 1; \
+        ); \
+    done"

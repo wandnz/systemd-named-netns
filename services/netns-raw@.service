@@ -26,3 +26,4 @@ ExecStart=/usr/bin/env ip netns exec %i /usr/bin/env netnsinit interface %i ${DE
 
 ExecStop=-/usr/bin/env kill -15 `cat /var/run/dhclient-%i.pid`
 ExecStop=-/usr/bin/env rm /var/run/dhclient-%i.pid
+ExecStop=/usr/bin/env ip netns exec %i ip link set ${DEVNAME} netns 1;

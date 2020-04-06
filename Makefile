@@ -14,6 +14,7 @@ install:
 	install --owner=root --group=root --mode=644 configs/netns $(DESTDIR)/etc/default/
 	install --owner=root --group=root --mode=755 scripts/chnetns $(DESTDIR)/usr/bin/
 	install --owner=root --group=root --mode=755 scripts/netnsinit $(DESTDIR)/usr/sbin/
+	install --owner=root --group=root --mode=755 scripts/netnsctl $(DESTDIR)/usr/sbin/
 	systemctl daemon-reload || true
 
 uninstall:
@@ -28,3 +29,4 @@ uninstall:
 	rm -f $(DESTDIR)/$(LIBDIR)/systemd/system/netns-veth@.service
 	rm -f $(DESTDIR)/usr/bin/chnetns
 	rm -f $(DESTDIR)/usr/sbin/netnsinit
+	rm -f $(DESTDIR)/usr/sbin/netnsctl

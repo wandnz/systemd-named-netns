@@ -4,7 +4,7 @@ set -e
 
 display_usage() {
 	echo "Auto configuration for systemd-named-netns."
-	echo -e "\nUsage:\n\t$0 network-type ns-name \n"
+	echo -e "\nUsage:\n\t$0 network-type ns-name config-file\n"
 	echo "Note: you may need root privileges for this."
 }
 
@@ -13,8 +13,7 @@ autoconfigure_interface() {
 		/bin/ip link set ${DEVNAME_INSIDE} address ${MACADDR}
 	fi
 	if [ "${DHCPV4}" == "1" ]; then
-		! mkdir -p /var/run/netns
-		dhclient -v -i ${DEVNAME_INSIDE} -nw -pf /var/run/netns/dhclient-${NSNAME}.pid
+		dhclient -v -i ${DEVNAME_INSIDE} -nw -pf /var/run/dhclient-${NSNAME}_${DEVNAME_INSIDE}.pid
 	else
 		if [ ! -z "${IPADDR_V4}" ]; then
 			/bin/ip address add ${IPADDR_V4} dev ${DEVNAME_INSIDE}
@@ -35,11 +34,12 @@ autoconfigure_interface() {
 autoconfigure() {
 	local NSTYPE=$1
 	local NSNAME=$2
+	local DEVNAME_INSIDE=$3
+	local CONFIG=$4
 
 	echo "Starting autoconfigure for $NSTYPE ${NSNAME}"
-	DEVNAME_INSIDE=$3
-	source /etc/default/netns
-	! source "/etc/default/netns-${NSNAME}"
+
+	source "${CONFIG}"
 
 	if type -t autoconfigure_$NSTYPE >/dev/null ; then
 		autoconfigure_$NSTYPE "$@"

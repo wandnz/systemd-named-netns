@@ -1,0 +1,114 @@
+#!/bin/bash
+
+set -e
+
+display_usage() {
+    echo "Start/stop systemd-named-netns interfaces."
+    echo -e "\nUsage:\n\t$0 [start|stop] ns-name ns-type\n"
+    echo "Note: you may need root privileges for this."
+}
+
+start_raw() {
+    for config in /etc/default/netns-${NSNAME}/raw.*; do
+        [ -e ${config} ] || continue
+        # use a subshell so each interface is configured in a fresh environment
+        (
+            . ${config}
+            /usr/bin/env tc qdisc del dev ${DEVNAME} root || true
+            /usr/bin/env ip link set ${DEVNAME} netns ${NSNAME}
+            /usr/bin/env ip netns exec ${NSNAME} /usr/bin/env ip link set ${DEVNAME} up
+            /usr/bin/env ip netns exec ${NSNAME} /usr/bin/env netnsinit interface ${NSNAME} ${DEVNAME} ${config}
+        )
+    done
+}
+
+stop_raw() {
+    for config in /etc/default/netns-${NSNAME}/raw.*; do
+        [ -e ${config} ] || continue
+        # use a subshell so each interface is configured in a fresh environment
+        (
+            . ${config}
+            /usr/bin/env kill -15 `cat /var/run/dhclient-${NSNAME}_${DEVNAME}.pid` || true
+            /usr/bin/env rm /var/run/dhclient-${NSNAME}_${DEVNAME}.pid || true
+            /usr/bin/env ip netns exec ${NSNAME} ip link set ${DEVNAME} netns 1
+        )
+    done
+}
+
+start_veth() {
+    # Bridge depends on veth and needs interfaces to be configured too.
+    # If there are multiple bridges and/or veths in one namespace then
+    # device names will need to be set manually otherwise they will all
+    # use the same default values, causing clashes and failure.
+    for config in /etc/default/netns-${NSNAME}/veth.* /etc/default/netns-${NSNAME}/bridge.*; do
+        [ -e ${config} ] || continue
+        # use a subshell so each interface is configured in a fresh environment
+        (
+            . ${config}
+            /usr/bin/env ip link delete ${DEVNAME_OUTSIDE} || true
+            /usr/bin/env ip link delete ${DEVNAME_INSIDE} || true
+            /usr/bin/env ip link add ${DEVNAME_OUTSIDE} type veth peer name ${DEVNAME_INSIDE}
+            /usr/bin/env tc qdisc del dev ${DEVNAME_INSIDE} root || true
+            /usr/bin/env ip link set ${DEVNAME_OUTSIDE} up
+            /usr/bin/env ip link set ${DEVNAME_INSIDE} netns ${NSNAME}
+            /usr/bin/env ip address add ${IPADDR_OUTSIDE} dev ${DEVNAME_OUTSIDE} || true
+            /usr/bin/env ip netns exec ${NSNAME} /usr/bin/env ip link set ${DEVNAME_INSIDE} up
+            /usr/bin/env ip netns exec ${NSNAME} /usr/bin/env netnsinit interface ${NSNAME} ${DEVNAME_INSIDE} ${config}
+        )
+    done
+}
+
+stop_veth() {
+    for config in /etc/default/netns-${NSNAME}/veth.* /etc/default/netns-${NSNAME}/bridge.*; do
+        [ -e ${config} ] || continue
+        (
+            . ${config}
+            /usr/bin/env kill -15 `cat /var/run/dhclient-${NSNAME}_${DEVNAME_INSIDE}.pid` || true
+            /usr/bin/env rm /var/run/dhclient-${NSNAME}_${DEVNAME_INSIDE}.pid || true
+            /usr/bin/env ip link delete ${DEVNAME_OUTSIDE}
+        )
+    done
+}
+
+start_bridge() {
+    for config in /etc/default/netns-${NSNAME}/bridge.*; do
+        [ -e ${config} ] || continue
+        (
+            . ${config}
+            /usr/bin/env ip link set ${DEVNAME_OUTSIDE} master ${BRIDGE}
+            /usr/bin/env ip netns exec ${NSNAME} /usr/bin/env netnsinit bridge ${NSNAME} ${DEVNAME_INSIDE} ${config}
+        )
+    done
+}
+
+start_stop_namespace() {
+    local ACTION=$1
+    local NSNAME=$2
+    local NSTYPE=$3
+
+    # not every type of interface in a namespace has every action
+    if type -t ${ACTION}_${NSTYPE} >/dev/null ; then
+        ${ACTION}_${NSTYPE} "${NSNAME}"
+    fi
+}
+
+
+if [ $# != 3 ]; then
+	display_usage
+	exit 1
+fi
+
+case "$1" in
+    "--help" | "-h")
+        display_usage
+        exit 0
+        ;;
+    "start"|"stop")
+        start_stop_namespace "$@"
+        exit 0
+        ;;
+    *)
+        display_usage
+        exit 1
+        ;;
+esac

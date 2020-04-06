@@ -14,25 +14,5 @@ WantedBy=multi-user.target
 Type=oneshot
 RemainAfterExit=yes
 
-ExecStart=/bin/sh -c \
-    "set -e; for config in /etc/default/netns-%i/raw.*; do \
-        [ -e $${config} ] || continue; \
-        ( \
-        . $${config}; \
-        /usr/bin/env tc qdisc del dev $${DEVNAME} root || true; \
-        /usr/bin/env ip link set $${DEVNAME} netns %i; \
-        /usr/bin/env ip netns exec %i /usr/bin/env ip link set $${DEVNAME} up; \
-        /usr/bin/env ip netns exec %i /usr/bin/env netnsinit interface %i $${DEVNAME} $${config}; \
-        ); \
-    done"
-
-ExecStop=/bin/sh -c \
-    "set -e; for config in /etc/default/netns-%i/raw.*; do \
-        [ -e $${config} ] || continue; \
-        ( \
-        . $${config}; \
-        /usr/bin/env kill -15 `cat /var/run/dhclient-%i_$${DEVNAME}.pid` || true; \
-        /usr/bin/env rm /var/run/dhclient-%i_$${DEVNAME}.pid || true; \
-        /usr/bin/env ip netns exec %i ip link set $${DEVNAME} netns 1; \
-        ); \
-    done"
+ExecStart=/usr/bin/env netnsctl start %i raw
+ExecStop=/usr/bin/env netnsctl stop %i raw

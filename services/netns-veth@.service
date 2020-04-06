@@ -16,30 +16,5 @@ RemainAfterExit=yes
 Environment=DEVNAME_OUTSIDE=veth-%i
 Environment=DEVNAME_INSIDE=veth0
 
-ExecStart=/bin/sh -c \
-    "set -e; for config in /etc/default/netns-%i/veth.* /etc/default/netns-%i/bridge.*; do \
-        [ -e $${config} ] || continue; \
-        ( \
-        . $${config}; \
-        /usr/bin/env ip link delete $${DEVNAME_OUTSIDE} || true; \
-        /usr/bin/env ip link delete $${DEVNAME_INSIDE} || true; \
-        /usr/bin/env ip link add $${DEVNAME_OUTSIDE} type veth peer name $${DEVNAME_INSIDE}; \
-        /usr/bin/env tc qdisc del dev $${DEVNAME_INSIDE} root || true; \
-        /usr/bin/env ip link set $${DEVNAME_OUTSIDE} up; \
-        /usr/bin/env ip link set $${DEVNAME_INSIDE} netns %i; \
-        /usr/bin/env ip address add $${IPADDR_OUTSIDE} dev $${DEVNAME_OUTSIDE} || true; \
-        /usr/bin/env ip netns exec %i /usr/bin/env ip link set $${DEVNAME_INSIDE} up; \
-        /usr/bin/env ip netns exec %i /usr/bin/env netnsinit interface %i $${DEVNAME_INSIDE} $${config}; \
-        ); \
-    done"
-
-ExecStop=/bin/sh -c \
-    "set -e; for config in /etc/default/netns-%i/veth.* /etc/default/netns-%i/bridge.*; do \
-        [ -e $${config} ] || continue; \
-        ( \
-        . $${config}; \
-        /usr/bin/env kill -15 `cat /var/run/dhclient-%i_$${DEVNAME_INSIDE}.pid` || true; \
-        /usr/bin/env rm /var/run/dhclient-%i_$${DEVNAME_INSIDE}.pid || true; \
-        /usr/bin/env ip link delete $${DEVNAME_OUTSIDE}; \
-        ); \
-    done"
+ExecStart=/usr/bin/env netnsctl start %i veth
+ExecStop=/usr/bin/env netnsctl stop %i veth

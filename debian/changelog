@@ -1,3 +1,10 @@
+systemd-named-netns (0~20200904-1) unstable; urgency=medium
+
+  * New upstream version
+  * Allow multiple interfaces for each network namespace
+
+ -- Brad Cowie <brad@wand.net.nz>  Fri, 04 Sep 2020 11:25:47 +1200
+
 systemd-named-netns (0~20190627-1) unstable; urgency=medium
 
   * New upstream version

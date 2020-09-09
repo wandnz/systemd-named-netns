@@ -17,19 +17,19 @@ jobs:
         target:
             - "ubuntu:bionic"
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
       - name: Install packages
         run: |
           apt-get update
           apt-get -y upgrade
           apt-get -y install devscripts dpkg-dev debhelper equivs
           mk-build-deps -i -r -t 'apt-get -f -y --force-yes'
-      - name: Checkout repo
-        uses: actions/checkout@v2
       - name: Build package
         run: |
           export DEBEMAIL='packaging@wand.net.nz'
           export DEBFULLNAME='WAND Packaging'
-          dpkg-buildpackage -b -us -uc -rfakeroot -j4
+          dpkg-buildpackage -b -us -uc -rfakeroot
       - name: Store package
         run: |
           mkdir -p packages/all

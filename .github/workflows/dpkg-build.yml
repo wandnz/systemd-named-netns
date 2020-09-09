@@ -1,0 +1,44 @@
+name: Debian Package Build
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ matrix.target }}
+    strategy:
+      matrix:
+        arch:
+          - amd64
+        target:
+            - "ubuntu:bionic"
+    steps:
+      - name: Install packages
+        run: |
+          apt-get update
+          apt-get -y upgrade
+          apt-get -y install devscripts dpkg-dev debhelper equivs
+          mk-build-deps -i -r -t 'apt-get -f -y --force-yes'
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Build package
+        run: |
+          export DEBEMAIL='packaging@wand.net.nz'
+          export DEBFULLNAME='WAND Packaging'
+          dpkg-buildpackage -b -us -uc -rfakeroot -j4
+      - name: Store package
+        run: |
+          mkdir -p packages/all
+          cp ../*.deb packages/all
+      - name: Publish package on bintray
+        uses: wanduow/action-bintray-upload-debian-packages@v1
+        with:
+          path: packages/
+          repo: wand/general
+          license: GPL-3.0
+          username: gizmoguy
+          api_key: ${{ secrets.BINTRAY_API_KEY }}

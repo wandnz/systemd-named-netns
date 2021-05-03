@@ -1,9 +1,14 @@
 name: Debian Package Build
 
 on:
-  push:
-    tags:
-      - '*'
+  release:
+    types:
+      - published
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+  DEBEMAIL: packaging@wand.net.nz
+  DEBFULLNAME: WAND Packaging
 
 jobs:
   build:
@@ -15,11 +20,11 @@ jobs:
         arch:
           - amd64
         target:
-            - "ubuntu:bionic"
+            - "ubuntu:focal"
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
-      - name: Install packages
+      - name: Install dependencies
         run: |
           apt-get update
           apt-get -y upgrade
@@ -27,18 +32,15 @@ jobs:
           mk-build-deps -i -r -t 'apt-get -f -y --force-yes'
       - name: Build package
         run: |
-          export DEBEMAIL='packaging@wand.net.nz'
-          export DEBFULLNAME='WAND Packaging'
           dpkg-buildpackage -b -us -uc -rfakeroot
       - name: Store package
         run: |
           mkdir -p packages/all
           cp ../*.deb packages/all
-      - name: Publish package on bintray
-        uses: wanduow/action-bintray-upload-debian-packages@v1
+      - name: Publish packages to cloudsmith
+        uses: wanduow/action-cloudsmith-upload-packages@v1
         with:
           path: packages/
-          repo: wand/general
-          license: GPL-3.0
-          username: gizmoguy
-          api_key: ${{ secrets.BINTRAY_API_KEY }}
+          repo: wand/systemd-named-netns
+          username: brad-cowie
+          api_key: ${{ secrets.CLOUDSMITH_API_KEY }}

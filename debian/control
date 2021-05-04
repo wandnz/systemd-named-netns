@@ -2,9 +2,9 @@ Source: systemd-named-netns
 Section: admin
 Priority: optional
 Maintainer: Brad Cowie <brad@wand.net.nz>
-Build-Depends: debhelper (>= 9), dh-systemd
+Build-Depends: debhelper (>= 9), dh-systemd | debhelper (>= 13.3)
 Standards-Version: 3.9.8
-Homepage: https://github.com/gizmoguy/systemd-named-netns
+Homepage: https://github.com/wanduow/systemd-named-netns
 
 Package: systemd-named-netns
 Architecture: all

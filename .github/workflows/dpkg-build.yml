@@ -55,6 +55,9 @@ jobs:
           apt-get -y upgrade
           apt-get -y install devscripts dpkg-dev debhelper equivs
           mk-build-deps -i -r -t 'apt-get -f -y --force-yes'
+      - name: Bump version
+        run: |
+          debchange --newversion ${{ github.event.release.tag_name }} -b "New upstream release"
       - name: Build package
         run: |
           dpkg-buildpackage -b -us -uc -rfakeroot

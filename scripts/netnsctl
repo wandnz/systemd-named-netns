@@ -15,8 +15,20 @@ start_raw() {
         (
             . ${config}
             /usr/bin/env tc qdisc del dev ${DEVNAME} root || true
-            /usr/bin/env ip link set ${DEVNAME} netns ${NSNAME}
-            /usr/bin/env ip netns exec ${NSNAME} /usr/bin/env ip link set ${DEVNAME} up
+            if [ -d /sys/class/net/${DEVNAME}/phy80211 ]; then
+                # wireless interface configuration
+                PHY="$(cat /sys/class/net/${DEVNAME}/phy80211/name)"
+                /usr/bin/env iw phy ${PHY} set netns name ${NSNAME}
+                # TODO netplan can't bring this interface up in the namespace
+                if command -v ifup; then
+                    /usr/bin/env ip netns exec ${NSNAME} /usr/bin/env ifup ${DEVNAME}
+                fi
+            else
+                # wired interface configuration
+                /usr/bin/env ip link set ${DEVNAME} netns ${NSNAME}
+                /usr/bin/env ip netns exec ${NSNAME} /usr/bin/env ip link set ${DEVNAME} up
+            fi
+
             /usr/bin/env ip netns exec ${NSNAME} /usr/bin/env netnsinit interface ${NSNAME} ${DEVNAME} ${config}
         )
     done
@@ -30,7 +42,17 @@ stop_raw() {
             . ${config}
             /usr/bin/env kill -15 `cat /var/run/dhclient-${NSNAME}_${DEVNAME}.pid` || true
             /usr/bin/env rm /var/run/dhclient-${NSNAME}_${DEVNAME}.pid || true
-            /usr/bin/env ip netns exec ${NSNAME} ip link set ${DEVNAME} netns 1
+            if /usr/bin/env ip netns exec ${NSNAME} [ -d /sys/class/net/${DEVNAME}/phy80211 ]; then
+                # wireless interface configuration
+                if command -v ifdown; then
+                    /usr/bin/env ip netns exec ${NSNAME} /usr/bin/env ifdown ${DEVNAME}
+                fi
+                PHY="$(/usr/bin/env ip netns exec ${NSNAME} cat /sys/class/net/${DEVNAME}/phy80211/name)"
+                /usr/bin/env ip netns exec ${NSNAME} iw phy ${PHY} set netns 1
+            else
+                # wired interface configuration
+                /usr/bin/env ip netns exec ${NSNAME} ip link set ${DEVNAME} netns 1
+            fi
         )
     done
 }

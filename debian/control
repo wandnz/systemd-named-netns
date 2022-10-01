@@ -8,8 +8,7 @@ Homepage: https://github.com/wanduow/systemd-named-netns
 
 Package: systemd-named-netns
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, systemd (>=232)
-Recommends: iproute2, iptables
+Depends: ${shlibs:Depends}, ${misc:Depends}, systemd (>=232), iproute2, procps
 Description: Manage netns on the fly with systemd services
  This project enables you to:
   * Create and delete named netns on the fly like systemd services
